@@ -2,9 +2,11 @@ import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Mail, Lock, Eye, EyeOff, ArrowRight, Brain } from 'lucide-react';
 import { useState } from 'react';
+import { useAuth } from '../contexts/AuthContext';
 
 const Login = () => {
   const navigate = useNavigate();
+  const { signIn } = useAuth();
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -18,19 +20,28 @@ const Login = () => {
     const email = formData.get('email') as string;
     const password = formData.get('password') as string;
 
-    // محاكاة تسجيل الدخول
-    setTimeout(() => {
-      const emailLower = email.toLowerCase();
-      
-      if (emailLower === 'admin@faten.com') {
-        navigate('/admin-dashboard');
-      } else if (emailLower === 'expert@faten.com') {
-        navigate('/expert-dashboard');
-      } else {
-        navigate('/dashboard');
+    try {
+      const { profile } = await signIn(email, password);
+
+      switch (profile.role) {
+        case 'admin':
+          navigate('/admin-dashboard');
+          break;
+        case 'expert':
+          navigate('/expert-dashboard');
+          break;
+        case 'user':
+          navigate('/dashboard');
+          break;
+        default:
+          throw new Error('Invalid user role');
       }
+    } catch (err: any) {
+      console.error('Login error:', err);
+      setError(err.message || 'فشل تسجيل الدخول. يرجى التحقق من بيانات الدخول.');
+    } finally {
       setLoading(false);
-    }, 1000);
+    }
   };
 
   return (

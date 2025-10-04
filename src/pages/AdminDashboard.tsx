@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Brain, Users, UserCog, BookOpen, BarChart3, Home, Search, Filter, Plus, Trash2, Ban, Eye, CreditCard as Edit, Settings, LogOut, Bell, TrendingUp, Clock, MessageSquare, Star, Activity, Download, RefreshCw, AlertTriangle, CheckCircle, XCircle, Video, FileText, Book } from 'lucide-react';
 import NotificationModal from '../components/NotificationModal';
+import { PreRegisteredAccounts } from '../components/PreRegisteredAccounts';
 
 interface User {
   id: number;
@@ -299,6 +300,18 @@ const AdminDashboard = () => {
               <BarChart3 className="w-5 h-5" />
               <span className="font-medium">التحليلات والتقارير</span>
             </button>
+
+            <button
+              onClick={() => setActiveSection('preregistered')}
+              className={`w-full flex items-center gap-3 p-4 rounded-xl text-right transition-all ${
+                activeSection === 'preregistered'
+                  ? 'bg-gradient-to-r from-[#DC2626] to-[#B91C1C] text-white shadow-lg'
+                  : 'text-[#8B7355] hover:bg-[#8B7355]/10'
+              }`}
+            >
+              <UserCog className="w-5 h-5" />
+              <span className="font-medium">الحسابات المُسجلة مسبقاً</span>
+            </button>
           </nav>
         </div>
 
@@ -332,6 +345,7 @@ const AdminDashboard = () => {
                 {activeSection === 'experts' && 'إدارة الخبراء'}
                 {activeSection === 'users' && 'إدارة المستخدمين'}
                 {activeSection === 'analytics' && 'التحليلات والتقارير'}
+                {activeSection === 'preregistered' && 'الحسابات المُسجلة مسبقاً'}
               </h2>
               <p className="text-[#6B7280] mt-1">
                 {activeSection === 'summary' && 'نظرة شاملة على أداء المنصة'}
@@ -339,6 +353,7 @@ const AdminDashboard = () => {
                 {activeSection === 'experts' && 'مراقبة وإدارة حسابات الخبراء'}
                 {activeSection === 'users' && 'مراقبة وإدارة حسابات المستخدمين'}
                 {activeSection === 'analytics' && 'تقارير مفصلة وإحصائيات المنصة'}
+                {activeSection === 'preregistered' && 'إضافة حسابات خبراء ومدراء قبل التسجيل'}
               </p>
             </div>
             <div className="flex items-center gap-3">
@@ -733,6 +748,13 @@ const AdminDashboard = () => {
                   </tbody>
                 </table>
               </div>
+            </div>
+          )}
+
+          {/* Pre-Registered Accounts Section */}
+          {activeSection === 'preregistered' && (
+            <div className="content-card">
+              <PreRegisteredAccounts />
             </div>
           )}
 

@@ -1,9 +1,11 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { User, Mail, Lock, Eye, EyeOff, ArrowRight } from 'lucide-react';
+import { useAuth } from '../contexts/AuthContext';
 
 const Register = () => {
   const navigate = useNavigate();
+  const { signUp } = useAuth();
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -20,25 +22,27 @@ const Register = () => {
     const password = formData.get('password') as string;
     const confirmPassword = formData.get('confirmPassword') as string;
 
-    // Validate passwords match
     if (password !== confirmPassword) {
       setError('كلمات المرور غير متطابقة');
       setLoading(false);
       return;
     }
 
-    // Validate password strength
     if (password.length < 6) {
       setError('كلمة المرور يجب أن تكون 6 أحرف على الأقل');
       setLoading(false);
       return;
     }
 
-    // محاكاة إنشاء الحساب
-    setTimeout(() => {
+    try {
+      await signUp(email, password, fullName);
       navigate('/dashboard');
+    } catch (err: any) {
+      console.error('Registration error:', err);
+      setError(err.message || 'فشل إنشاء الحساب. يرجى المحاولة مرة أخرى.');
+    } finally {
       setLoading(false);
-    }, 1000);
+    }
   };
 
   return (

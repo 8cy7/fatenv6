@@ -1,5 +1,7 @@
 import React, { useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
+import { AuthProvider } from './contexts/AuthContext';
+import { ProtectedRoute } from './components/ProtectedRoute';
 import HomePage from './pages/HomePage';
 import Register from './pages/Register';
 import Login from './pages/Login';
@@ -8,7 +10,6 @@ import ExpertDashboard from './pages/ExpertDashboard';
 import AdminDashboard from './pages/AdminDashboard';
 import TwoFactorVerification from './pages/TwoFactorVerification';
 
-// مكون صغير يغير العنوان حسب الصفحة
 function PageTitleUpdater() {
   const location = useLocation();
 
@@ -46,20 +47,41 @@ function PageTitleUpdater() {
 function App() {
   return (
     <Router>
-      {/* مبدئياً نضبط العنوان لأول واجهة */}
-      <PageTitleUpdater />
-
-      <div className="min-h-screen bg-gray-50 font-sans" dir="rtl">
-        <Routes>
-          <Route path="/" element={<HomePage />} />
-          <Route path="/register" element={<Register />} />
-          <Route path="/login" element={<Login />} />
-          <Route path="/two-factor-verification" element={<TwoFactorVerification />} />
-          <Route path="/dashboard" element={<Dashboard />} />
-          <Route path="/expert-dashboard" element={<ExpertDashboard />} />
-          <Route path="/admin-dashboard" element={<AdminDashboard />} />
-        </Routes>
-      </div>
+      <AuthProvider>
+        <PageTitleUpdater />
+        <div className="min-h-screen bg-gray-50 font-sans" dir="rtl">
+          <Routes>
+            <Route path="/" element={<HomePage />} />
+            <Route path="/register" element={<Register />} />
+            <Route path="/login" element={<Login />} />
+            <Route path="/two-factor-verification" element={<TwoFactorVerification />} />
+            <Route
+              path="/dashboard"
+              element={
+                <ProtectedRoute allowedRoles={['user']}>
+                  <Dashboard />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/expert-dashboard"
+              element={
+                <ProtectedRoute allowedRoles={['expert']}>
+                  <ExpertDashboard />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/admin-dashboard"
+              element={
+                <ProtectedRoute allowedRoles={['admin']}>
+                  <AdminDashboard />
+                </ProtectedRoute>
+              }
+            />
+          </Routes>
+        </div>
+      </AuthProvider>
     </Router>
   );
 }
