@@ -116,11 +116,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (authError) throw authError;
     if (!authData.user) throw new Error('Sign in failed');
 
+    console.log('Auth user ID:', authData.user.id);
+
     const { data: profileData, error: profileError } = await supabase
       .from('profiles')
       .select('*')
       .eq('id', authData.user.id)
       .single();
+
+    console.log('Profile from DB:', profileData);
+    console.log('Profile error:', profileError);
 
     if (profileError) throw profileError;
 

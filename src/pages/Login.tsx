@@ -23,18 +23,28 @@ const Login = () => {
     try {
       const { profile } = await signIn(email, password);
 
+      console.log('Profile data:', profile);
+      console.log('Profile role:', profile.role);
+
+      if (!profile || !profile.role) {
+        throw new Error('Profile or role is missing');
+      }
+
       switch (profile.role) {
         case 'admin':
+          console.log('Navigating to admin dashboard');
           navigate('/admin-dashboard');
           break;
         case 'expert':
+          console.log('Navigating to expert dashboard');
           navigate('/expert-dashboard');
           break;
         case 'user':
+          console.log('Navigating to user dashboard');
           navigate('/dashboard');
           break;
         default:
-          throw new Error('Invalid user role');
+          throw new Error('Invalid user role: ' + profile.role);
       }
     } catch (err: any) {
       console.error('Login error:', err);
