@@ -26,14 +26,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     const initAuth = async () => {
       try {
+        console.log('initAuth: Starting...');
         const { data: { session } } = await supabase.auth.getSession();
+        console.log('initAuth: Session:', session?.user?.id);
 
         if (session?.user && mounted) {
-          const { data: profileData } = await supabase
+          console.log('initAuth: Fetching profile for user:', session.user.id);
+          const { data: profileData, error: profileError } = await supabase
             .from('profiles')
             .select('*')
             .eq('id', session.user.id)
             .maybeSingle();
+
+          console.log('initAuth: Profile data:', profileData);
+          console.log('initAuth: Profile error:', profileError);
 
           setUser(session.user);
           setProfile(profileData);
@@ -42,6 +48,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         console.error('Error initializing auth:', error);
       } finally {
         if (mounted) {
+          console.log('initAuth: Setting loading to false');
           setLoading(false);
         }
       }
