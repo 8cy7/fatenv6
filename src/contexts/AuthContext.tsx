@@ -85,19 +85,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         data: {
           full_name: fullName,
         },
+        emailRedirectTo: undefined,
       },
     });
 
     if (authError) throw authError;
     if (!authData.user) throw new Error('Sign up failed');
 
+    await new Promise(resolve => setTimeout(resolve, 1000));
+
     const { data: profileData, error: profileError } = await supabase
       .from('profiles')
       .select('*')
       .eq('id', authData.user.id)
-      .single();
+      .maybeSingle();
 
     if (profileError) throw profileError;
+    if (!profileData) throw new Error('Profile not created');
 
     setUser(authData.user);
     setProfile(profileData);

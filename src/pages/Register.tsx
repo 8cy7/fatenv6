@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { User, Mail, Lock, Eye, EyeOff, ArrowRight } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
+import { supabase } from '../lib/supabase';
 
 const Register = () => {
   const navigate = useNavigate();
@@ -36,7 +37,30 @@ const Register = () => {
 
     try {
       await signUp(email, password, fullName);
-      navigate('/dashboard');
+
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session?.user) {
+        const { data: profileData } = await supabase
+          .from('profiles')
+          .select('*')
+          .eq('id', session.user.id)
+          .maybeSingle();
+
+        if (profileData) {
+          switch (profileData.role) {
+            case 'admin':
+              navigate('/admin-dashboard');
+              break;
+            case 'expert':
+              navigate('/expert-dashboard');
+              break;
+            default:
+              navigate('/dashboard');
+          }
+        } else {
+          navigate('/dashboard');
+        }
+      }
     } catch (err: any) {
       console.error('Registration error:', err);
       setError(err.message || 'فشل إنشاء الحساب. يرجى المحاولة مرة أخرى.');
