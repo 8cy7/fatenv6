@@ -24,6 +24,9 @@ export interface Database {
           role: UserRole;
           status: UserStatus;
           avatar_url: string | null;
+          verified: boolean;
+          verification_code: string | null;
+          verification_code_expires_at: string | null;
           created_at: string;
           updated_at: string;
         };
@@ -34,6 +37,9 @@ export interface Database {
           role?: UserRole;
           status?: UserStatus;
           avatar_url?: string | null;
+          verified?: boolean;
+          verification_code?: string | null;
+          verification_code_expires_at?: string | null;
           created_at?: string;
           updated_at?: string;
         };
@@ -44,6 +50,9 @@ export interface Database {
           role?: UserRole;
           status?: UserStatus;
           avatar_url?: string | null;
+          verified?: boolean;
+          verification_code?: string | null;
+          verification_code_expires_at?: string | null;
           created_at?: string;
           updated_at?: string;
         };

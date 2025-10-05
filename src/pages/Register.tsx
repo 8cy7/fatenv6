@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { User, Mail, Lock, Eye, EyeOff, ArrowRight } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../lib/supabase';
+import { createVerificationCode } from '../lib/verification';
 
 const Register = () => {
   const navigate = useNavigate();
@@ -54,11 +55,16 @@ const Register = () => {
             case 'expert':
               navigate('/expert-dashboard');
               break;
+            case 'user':
+              await createVerificationCode(session.user.id);
+              navigate('/verification');
+              break;
             default:
-              navigate('/dashboard');
+              navigate('/verification');
           }
         } else {
-          navigate('/dashboard');
+          await createVerificationCode(session.user.id);
+          navigate('/verification');
         }
       }
     } catch (err: any) {

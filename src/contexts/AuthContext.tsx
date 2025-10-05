@@ -2,6 +2,7 @@ import { createContext, useContext, useEffect, useState, ReactNode } from 'react
 import { User, AuthError } from '@supabase/supabase-js';
 import { supabase } from '../lib/supabase';
 import type { Database } from '../lib/database.types';
+import { createVerificationCode } from '../lib/verification';
 
 type Profile = Database['public']['Tables']['profiles']['Row'];
 
@@ -12,6 +13,7 @@ interface AuthContextType {
   signUp: (email: string, password: string, fullName: string) => Promise<void>;
   signIn: (email: string, password: string) => Promise<{ profile: Profile }>;
   signOut: () => Promise<void>;
+  refreshProfile: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -26,20 +28,35 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     const initAuth = async () => {
       try {
-        console.log('initAuth: Starting...');
         const { data: { session } } = await supabase.auth.getSession();
-        console.log('initAuth: Session:', session?.user?.id);
 
         if (session?.user && mounted) {
-          console.log('initAuth: Fetching profile for user:', session.user.id);
-          const { data: profileData, error: profileError } = await supabase
+          let { data: profileData, error: profileError } = await supabase
             .from('profiles')
             .select('*')
             .eq('id', session.user.id)
             .maybeSingle();
 
-          console.log('initAuth: Profile data:', profileData);
-          console.log('initAuth: Profile error:', profileError);
+          if (!profileData && !profileError) {
+            const { data: newProfile, error: createError } = await supabase
+              .from('profiles')
+              .insert({
+                id: session.user.id,
+                email: session.user.email!,
+                full_name: session.user.user_metadata?.full_name || 'User',
+                role: 'user',
+                status: 'active',
+                verified: false,
+              })
+              .select()
+              .single();
+
+            if (createError) {
+              console.error('Error creating profile:', createError);
+            } else {
+              profileData = newProfile;
+            }
+          }
 
           setUser(session.user);
           setProfile(profileData);
@@ -48,7 +65,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         console.error('Error initializing auth:', error);
       } finally {
         if (mounted) {
-          console.log('initAuth: Setting loading to false');
           setLoading(false);
         }
       }
@@ -123,19 +139,31 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (authError) throw authError;
     if (!authData.user) throw new Error('Sign in failed');
 
-    console.log('Auth user ID:', authData.user.id);
-
-    const { data: profileData, error: profileError } = await supabase
+    let { data: profileData, error: profileError } = await supabase
       .from('profiles')
       .select('*')
       .eq('id', authData.user.id)
       .maybeSingle();
 
-    console.log('Profile from DB:', profileData);
-    console.log('Profile error:', profileError);
-
     if (profileError) throw profileError;
-    if (!profileData) throw new Error('Profile not found');
+
+    if (!profileData) {
+      const { data: newProfile, error: createError } = await supabase
+        .from('profiles')
+        .insert({
+          id: authData.user.id,
+          email: authData.user.email!,
+          full_name: authData.user.user_metadata?.full_name || 'User',
+          role: 'user',
+          status: 'active',
+          verified: false,
+        })
+        .select()
+        .single();
+
+      if (createError) throw createError;
+      profileData = newProfile;
+    }
 
     setUser(authData.user);
     setProfile(profileData);
@@ -151,8 +179,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setProfile(null);
   };
 
+  const refreshProfile = async () => {
+    if (!user) return;
+
+    const { data: profileData } = await supabase
+      .from('profiles')
+      .select('*')
+      .eq('id', user.id)
+      .maybeSingle();
+
+    setProfile(profileData);
+  };
+
   return (
-    <AuthContext.Provider value={{ user, profile, loading, signUp, signIn, signOut }}>
+    <AuthContext.Provider value={{ user, profile, loading, signUp, signIn, signOut, refreshProfile }}>
       {children}
     </AuthContext.Provider>
   );

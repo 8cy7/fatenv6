@@ -8,6 +8,7 @@ import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
 import ExpertDashboard from './pages/ExpertDashboard';
 import AdminDashboard from './pages/AdminDashboard';
+import VerificationPage from './pages/VerificationPage';
 import TwoFactorVerification from './pages/TwoFactorVerification';
 
 function PageTitleUpdater() {
@@ -26,6 +27,9 @@ function PageTitleUpdater() {
         break;
       case '/two-factor-verification':
         document.title = 'التحقق بخطوتين | Faten';
+        break;
+      case '/verification':
+        document.title = 'التحقق من الحساب | Faten';
         break;
       case '/dashboard':
         document.title = 'الواجهة الرئيسية | Faten';
@@ -55,10 +59,11 @@ function App() {
             <Route path="/register" element={<Register />} />
             <Route path="/login" element={<Login />} />
             <Route path="/two-factor-verification" element={<TwoFactorVerification />} />
+            <Route path="/verification" element={<VerificationPage />} />
             <Route
               path="/dashboard"
               element={
-                <ProtectedRoute allowedRoles={['user']}>
+                <ProtectedRoute allowedRoles={['user']} requireVerified={true}>
                   <Dashboard />
                 </ProtectedRoute>
               }
