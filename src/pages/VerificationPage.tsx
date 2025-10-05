@@ -13,33 +13,41 @@ export default function VerificationPage() {
   const { user, profile, refreshProfile } = useAuth();
 
   useEffect(() => {
-    if (!user || !profile) {
-      navigate('/login');
-      return;
-    }
-
-    if (profile.verified) {
-      navigate('/dashboard');
-      return;
-    }
-
-    if (profile.role !== 'user') {
-      switch (profile.role) {
-        case 'admin':
-          navigate('/admin-dashboard');
-          break;
-        case 'expert':
-          navigate('/expert-dashboard');
-          break;
-        default:
-          navigate('/dashboard');
+    const init = async () => {
+      if (!user || !profile) {
+        navigate('/login');
+        return;
       }
-      return;
-    }
 
-    if (!profile.verification_code) {
-      createVerificationCode(user.id);
-    }
+      if (profile.verified) {
+        navigate('/dashboard');
+        return;
+      }
+
+      if (profile.role !== 'user') {
+        switch (profile.role) {
+          case 'admin':
+            navigate('/admin-dashboard');
+            break;
+          case 'expert':
+            navigate('/expert-dashboard');
+            break;
+          default:
+            navigate('/dashboard');
+        }
+        return;
+      }
+
+      if (!profile.verification_code) {
+        try {
+          await createVerificationCode(user.id);
+        } catch (err) {
+          console.error('Error creating verification code:', err);
+        }
+      }
+    };
+
+    init();
   }, [user, profile, navigate]);
 
   const handleVerify = async (e: React.FormEvent) => {

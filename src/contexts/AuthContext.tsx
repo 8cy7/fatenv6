@@ -73,24 +73,42 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     initAuth();
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
+      (event, session) => {
         if (!mounted) return;
 
-        if (event === 'SIGNED_IN' && session?.user) {
-          const { data: profileData } = await supabase
-            .from('profiles')
-            .select('*')
-            .eq('id', session.user.id)
-            .maybeSingle();
+        (async () => {
+          if (event === 'SIGNED_IN' && session?.user) {
+            let { data: profileData } = await supabase
+              .from('profiles')
+              .select('*')
+              .eq('id', session.user.id)
+              .maybeSingle();
 
-          setUser(session.user);
-          setProfile(profileData);
-        } else if (event === 'SIGNED_OUT') {
-          setUser(null);
-          setProfile(null);
-        } else if (event === 'TOKEN_REFRESHED' && session?.user) {
-          setUser(session.user);
-        }
+            if (!profileData) {
+              const { data: newProfile } = await supabase
+                .from('profiles')
+                .insert({
+                  id: session.user.id,
+                  email: session.user.email!,
+                  full_name: session.user.user_metadata?.full_name || 'User',
+                  role: 'user',
+                  status: 'active',
+                  verified: false,
+                })
+                .select()
+                .single();
+              profileData = newProfile;
+            }
+
+            setUser(session.user);
+            setProfile(profileData);
+          } else if (event === 'SIGNED_OUT') {
+            setUser(null);
+            setProfile(null);
+          } else if (event === 'TOKEN_REFRESHED' && session?.user) {
+            setUser(session.user);
+          }
+        })();
       }
     );
 
