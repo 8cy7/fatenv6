@@ -157,15 +157,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (authError) throw authError;
     if (!authData.user) throw new Error('Sign in failed');
 
+    console.log('=== AUTH CONTEXT signIn ===');
+    console.log('User ID:', authData.user.id);
+    console.log('User email:', authData.user.email);
+
     let { data: profileData, error: profileError } = await supabase
       .from('profiles')
       .select('*')
       .eq('id', authData.user.id)
       .maybeSingle();
 
+    console.log('Profile from DB:', profileData);
+    console.log('Profile error:', profileError);
+
     if (profileError) throw profileError;
 
     if (!profileData) {
+      console.log('No profile found, creating new user profile');
       const { data: newProfile, error: createError } = await supabase
         .from('profiles')
         .insert({
@@ -179,9 +187,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         .select()
         .single();
 
-      if (createError) throw createError;
+      if (createError) {
+        console.error('Error creating profile:', createError);
+        throw createError;
+      }
       profileData = newProfile;
+      console.log('Created new profile:', profileData);
     }
+
+    console.log('Final profile role:', profileData?.role);
 
     setUser(authData.user);
     setProfile(profileData);

@@ -39,7 +39,11 @@ const Register = () => {
     try {
       await signUp(email, password, fullName);
 
+      console.log('=== REGISTER DEBUG ===');
+
       const { data: { session } } = await supabase.auth.getSession();
+      console.log('Session user:', session?.user?.id);
+
       if (session?.user) {
         const { data: profileData } = await supabase
           .from('profiles')
@@ -47,22 +51,33 @@ const Register = () => {
           .eq('id', session.user.id)
           .maybeSingle();
 
+        console.log('Profile after signup:', profileData);
+
         if (profileData) {
+          console.log('Profile role:', profileData.role);
+
           switch (profileData.role) {
             case 'admin':
+              console.log('Admin detected, going to admin dashboard');
               navigate('/admin-dashboard');
               break;
             case 'expert':
+              console.log('Expert detected, going to expert dashboard');
               navigate('/expert-dashboard');
               break;
             case 'user':
-              await createVerificationCode(session.user.id);
+              console.log('User detected, creating verification code');
+              const code = await createVerificationCode(session.user.id);
+              console.log('Verification code created:', code);
               navigate('/verification');
               break;
             default:
+              console.log('Unknown role, creating verification code');
+              await createVerificationCode(session.user.id);
               navigate('/verification');
           }
         } else {
+          console.log('No profile found, creating verification code');
           await createVerificationCode(session.user.id);
           navigate('/verification');
         }

@@ -23,25 +23,38 @@ const Login = () => {
     try {
       const { profile } = await signIn(email, password);
 
+      console.log('=== LOGIN DEBUG ===');
+      console.log('Profile:', profile);
+      console.log('Role:', profile?.role);
+      console.log('Verified:', profile?.verified);
+
       if (!profile || !profile.role) {
         throw new Error('Profile or role is missing');
       }
 
+      console.log('Switching on role:', profile.role);
+
       switch (profile.role) {
         case 'admin':
+          console.log('Navigating to admin dashboard');
           navigate('/admin-dashboard');
           break;
         case 'expert':
+          console.log('Navigating to expert dashboard');
           navigate('/expert-dashboard');
           break;
         case 'user':
+          console.log('User role detected');
           if (profile.verified) {
+            console.log('User is verified, going to dashboard');
             navigate('/dashboard');
           } else {
+            console.log('User not verified, going to verification');
             navigate('/verification');
           }
           break;
         default:
+          console.error('Unknown role:', profile.role);
           throw new Error('Invalid user role: ' + profile.role);
       }
     } catch (err: any) {
